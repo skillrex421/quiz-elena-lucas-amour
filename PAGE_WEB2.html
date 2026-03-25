@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quiz "Qui de nous deux ?" avec Photos</title>
+<style>
+body {
+  margin: 0;
+  height: 100vh;
+  font-family: 'Segoe UI Emoji', 'Arial', sans-serif;
+  background: radial-gradient(circle, #ffc0cb 0%, #ff69b4 100%);
+  transition: background 0.5s ease;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.quiz-container {
+  background: rgba(255, 255, 255, 0.9);
+  padding: 20px 30px;
+  border-radius: 20px;
+  box-shadow: 0 0 20px rgba(0,0,0,0.2);
+  max-width: 400px;
+  text-align: center;
+  z-index: 10;
+}
+
+h1 {
+  margin-bottom: 20px;
+  color: #d1478b;
+}
+
+button {
+  background-color: #ff69b4;
+  color: white;
+  border: none;
+  padding: 10px 25px;
+  margin: 10px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s;
+}
+
+button:hover {
+  background-color: #ff85c1;
+}
+
+.heart, .star {
+  position: absolute;
+  font-size: 24px;
+  pointer-events: none;
+  animation: floatUp 1.5s linear forwards;
+}
+
+@keyframes floatUp {
+  0% {opacity: 1; transform: translateY(0) scale(1) rotate(0deg);}
+  100% {opacity: 0; transform: translateY(-300px) scale(1.5) rotate(360deg);}
+}
+
+#photoContainer {
+  position: absolute;
+  top: 50%;
+  width: 100%;
+  transform: translateY(-50%);
+  display: flex;
+  justify-content: space-around;
+  padding: 0 20px;
+}
+
+.flip-card {
+  background-color: transparent;
+  width: 300px;
+  height: 300px;
+  perspective: 1000px;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+
+.flip-card.visible { opacity: 1; pointer-events: auto; }
+
+.flip-card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  transition: transform 0.8s;
+  transform-style: preserve-3d;
+}
+
+.flip-card.flipped .flip-card-inner {
+  transform: rotateY(180deg);
+}
+
+.flip-card-front, .flip-card-back {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: 15px;
+  backface-visibility: hidden;
+}
+
+.flip-card-front img {
+  width: 100%;
+  height: 100%;
+  border-radius: 15px;
+  object-fit: cover;
+}
+
+.flip-card-back {
+  background-color: #ffe4e1;
+  color: #333;
+  transform: rotateY(180deg);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  box-shadow: 0 0 15px rgba(0,0,0,0.2);
+  font-weight: bold;
+}
+</style>
+</head>
+<body>
+
+<div class="quiz-container" role="region" aria-label="Quiz Qui de nous deux">
+  <h1>Qui de nous deux ?</h1>
+  <p id="question">Clique sur commencer pour lancer le quiz !</p>
+  <div>
+    <button id="lucasBtn">Lucas</button>
+    <button id="elenaBtn">Elena</button>
+  </div>
+  <button id="startBtn">Commencer</button>
+</div>
+
+<div id="photoContainer" role="region" aria-label="Cartes des participants">
+  <div class="flip-card" id="lucasCard">
+    <div class="flip-card-inner">
+      <div class="flip-card-front">
+        <img src="https://i.imgur.com/Ltnym1F.png" alt="Lucas">
+      </div>
+      <div class="flip-card-back">
+        <p>Nom : Barroca</p>
+        <p>Prénom : Lucas</p>
+        <p>Date de naissance : 29/07/2009</p>
+        <p>Amour : ma nana d'amour</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="flip-card" id="elenaCard">
+    <div class="flip-card-inner">
+      <div class="flip-card-front">
+        <img src="https://i.imgur.com/ynkx7GX.png" alt="Elena">
+      </div>
+      <div class="flip-card-back">
+        <p>Nom : Fernandes</p>
+        <p>Prénom : Elena</p>
+        <p>Date de naissance : 03/08/2010</p>
+        <p>Amour : mon lulu d'amour</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<audio id="soundLucas" src="https://www.soundjay.com/button/sounds/button-3.mp3"></audio>
+<audio id="soundElena" src="https://www.soundjay.com/button/sounds/button-09.mp3"></audio>
+
+<script>
+const questions = [
+"Qui est le plus romantique ?", "Qui oublie le plus souvent les anniversaires ?",
+"Qui mange le plus de chocolat ?", "Qui est le plus tete en l'air ?",
+"Qui passe le plus de temps sur son telephone ?", "Qui est le plus drole ?",
+"Qui choisit toujours le film ?", "Qui a la plus grande collection de chaussures ?",
+"Qui chante sous la douche ?", "Qui ronfle le plus ?", "Qui est le plus gourmand ?"
+];
+
+const body = document.body;
+const questionEl = document.getElementById('question');
+const lucasBtn = document.getElementById('lucasBtn');
+const elenaBtn = document.getElementById('elenaBtn');
+const startBtn = document.getElementById('startBtn');
+const soundLucas = document.getElementById('soundLucas');
+const soundElena = document.getElementById('soundElena');
+const lucasCard = document.getElementById('lucasCard');
+const elenaCard = document.getElementById('elenaCard');
+
+function getRandomQuestion() {
+  return questions[Math.floor(Math.random() * questions.length)];
+}
+
+function showQuestion() {
+  questionEl.textContent = getRandomQuestion();
+}
+
+function createAnimations(type, count=30) {
+  for (let i = 0; i < count; i++) {
+    const element = document.createElement('div');
+    element.className = type;
+    element.style.left = Math.random() * (window.innerWidth - 50) + 'px';
+    element.style.top = Math.random() * (window.innerHeight - 50) + 'px';
+    element.style.fontFamily = "'Segoe UI Emoji', 'Arial', sans-serif";
+    element.style.fontSize = (16 + Math.random() * 20) + 'px';
+    element.style.transform = `rotate(${Math.random()*360}deg)`;
+    element.innerHTML = type === 'heart' ? '&#10084;&#65039;' : '&#11088;';
+    document.body.appendChild(element);
+    setTimeout(() => element.remove(), 1500 + Math.random()*500);
+  }
+}
+
+lucasBtn.addEventListener('click', () => {
+  body.style.background = "radial-gradient(circle, #add8e6 0%, #0000ff 100%)";
+  createAnimations('star', 30);
+  soundLucas.currentTime = 0;
+  soundLucas.play();
+  showQuestion();
+  lucasCard.classList.add('visible');
+  elenaCard.classList.remove('visible');
+  lucasCard.classList.remove('flipped');
+});
+
+elenaBtn.addEventListener('click', () => {
+  body.style.background = "radial-gradient(circle, #ffc0cb 0%, #ff69b4 100%)";
+  createAnimations('heart', 30);
+  soundElena.currentTime = 0;
+  soundElena.play();
+  showQuestion();
+  elenaCard.classList.add('visible');
+  lucasCard.classList.remove('visible');
+  elenaCard.classList.remove('flipped');
+});
+
+startBtn.addEventListener('click', () => {
+  startBtn.style.display = "none";
+  showQuestion();
+});
+
+lucasCard.addEventListener('click', () => lucasCard.classList.toggle('flipped'));
+elenaCard.addEventListener('click', () => elenaCard.classList.toggle('flipped'));
+</script>
+
+</body>
+</html>
